@@ -10,6 +10,8 @@ import dio.bootcamp.gof.model.Cliente;
  * @author pablo.cunha
  */
 public interface ClienteService {
+
+
     Iterable<Cliente> buscarTodos();
     Cliente buscarPorId(Long id);
 

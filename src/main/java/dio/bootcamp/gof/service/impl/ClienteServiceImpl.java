@@ -1,10 +1,15 @@
 package dio.bootcamp.gof.service.impl;
 
 import dio.bootcamp.gof.model.Cliente;
+import dio.bootcamp.gof.model.ClienteRepository;
+import dio.bootcamp.gof.model.Endereco;
+import dio.bootcamp.gof.model.EnderecoRepository;
 import dio.bootcamp.gof.service.ClienteService;
+import dio.bootcamp.gof.service.ViaCepService;
 import org.apache.catalina.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Optional;
 
 
 /**
@@ -14,35 +19,53 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author pablo.cunha
  */
-
+@org.springframework.stereotype.Service
 public class ClienteServiceImpl implements ClienteService {
 
-    //TODO Singleton: Injetar os componentes do Spring com @Autowired.
-    //TODO Strategy: Implementar os metedoso definidos na interface.
-    //TODO Facade: Abstrair integração com subsistema, provendo uma interface simples.
+    @Autowired
+    private ClienteRepository clienteRepository;
+    @Autowired
+    private EnderecoRepository enderecoRepository;
+    @Autowired
+    private ViaCepService viaCepService;
+
     @Override
     public Iterable<Cliente> buscarTodos() {
-        // FIXME Buscar Cliente por ID.
-        return null;
+        return clienteRepository.findAll();
     }
 
     @Override
     public Cliente buscarPorId(Long id) {
-        return null;
+        Optional<Cliente> cliente = clienteRepository.findById(id);
+        return cliente.get();
     }
 
     @Override
     public void inserir(Cliente cliente) {
+        salvarClienteComCep(cliente);
+    }
 
+    private void salvarClienteComCep(Cliente cliente) {
+        String cep = cliente.getEndereco().getCep();
+        Endereco endereco = enderecoRepository.findById(cep).orElseGet(() -> {
+            return viaCepService.consultarCep(cep);
+        });
+        cliente.setEndereco(endereco);
+        clienteRepository.save(cliente);
     }
 
     @Override
     public void atualizar(Long id, Cliente cliente) {
+        Optional<Cliente> clienteBd = clienteRepository.findById(id);
+        if (clienteBd.isPresent()){
+            salvarClienteComCep(cliente);
+        }
 
     }
 
     @Override
     public void deletar(Long id) {
+        clienteRepository.deleteById(id);
 
     }
 }
